@@ -7,179 +7,203 @@ import dynamic from 'next/dynamic';
 import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
 
-// Dynamic import for Lottie to prevent SSR hydration errors
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
-// Import your JSON files directly
 import elephantIdle from '@/public/elephant-idle.json';
 import elephantHappy from '@/public/elephant-happy.json';
 import sparrowFlying from '@/public/sparrow.json';
 
 export default function ValentinePage() {
   const searchParams = useSearchParams();
-  const name = searchParams.get('name') || 'Baby'; // Default if no name provided
+  const name = searchParams.get('name') || 'Baby';
 
   const [noCount, setNoCount] = useState(0);
   const [yesPressed, setYesPressed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  
-  // Desktop "Runaway" State
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  // 1. Detect Screen Size (Hydration Safe)
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
-    handleResize(); // Check on mount
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 2. The "Guilt Trip" Text Array
   const phrases = [
-    "No",
-    "Are you sure?",
-    "Really sure?",
-    "Think again!",
-    "Last chance!",
-    "Surely not?",
-    "You might regret this!",
-    "Give it another thought!",
-    "Are you absolutely certain?",
-    "This could be a mistake!",
-    "Have a heart!",
-    "Don't be so cold!",
-    "Change of heart?",
-    "Wouldn't you reconsider?",
-    "Is that your final answer?",
-    "You're breaking my heart ;(",
-    "Plsss? :( You're my fav person"
+    "No 😐",
+    "Are you really sure? 🥺",
+    "Think again 😤",
+    "Dare you to say no again 😏",
+    "You're testing me now 😭",
+    "My heart can't take this 💔",
+    "Last chance... choose wisely 😌"
   ];
 
-  // 3. Logic: Handle "No" Interaction
   const handleNoClick = () => {
-    if (isMobile) {
-      setNoCount(noCount + 1);
-    }
+    setNoCount((prev) => prev + 1);
   };
 
   const handleNoHover = () => {
     if (!isMobile) {
-      // Calculate random position within viewport, ensuring it stays on screen
-      // We limit movement to +/- 300px from center to keep it visible but annoying
-      const x = Math.random() * (window.innerWidth - 200) - (window.innerWidth / 2 - 100);
-      const y = Math.random() * (window.innerHeight - 200) - (window.innerHeight / 2 - 100);
+      const padding = 150;
+      const maxX = window.innerWidth / 2 - padding;
+      const maxY = window.innerHeight / 3;
+
+      const x = (Math.random() - 0.5) * maxX;
+      const y = (Math.random() - 0.5) * maxY;
+
       setPosition({ x, y });
     }
   };
 
-  // 4. Logic: Handle "Yes" Interaction
   const handleYesClick = () => {
     setYesPressed(true);
-    // Fire confetti from center
     confetti({
-      particleCount: 150,
-      spread: 60,
+      particleCount: 180,
+      spread: 70,
       origin: { y: 0.6 },
-      colors: ['#E11D48', '#FF69B4', '#FFC0CB'] // Rose/Pink colors
+      colors: ['#E11D48', '#FF69B4', '#FFC0CB']
     });
-    
-    // Optional: Fire a second burst for effect
-    setTimeout(() => confetti({ particleCount: 50, spread: 100, origin: { y: 0.7 } }), 500);
   };
 
-  // Dynamic size for "Yes" button (grows as she clicks No on mobile)
-  const yesButtonSize = noCount * 20 + 16;
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-rose-50 px-4 overflow-hidden relative selection:bg-rose-200">
-      
-      {/* --- Floating Sparrow (Her) --- */}
-      {/* Represents her hovering around you. Top right position. */}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-rose-50 to-pink-100 px-4 overflow-hidden relative">
+
+      {/* Floating Background Hearts */}
       <motion.div
-        className="absolute top-10 right-10 w-24 h-24 z-10 pointer-events-none"
-        animate={{ y: [0, -15, 0], x: [0, 5, 0] }}
-        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+        className="absolute inset-0 flex items-center justify-center pointer-events-none text-rose-200 text-7xl opacity-10"
+        animate={{ opacity: [0.1, 0.2, 0.1] }}
+        transition={{ repeat: Infinity, duration: 4 }}
       >
-        <Lottie animationData={sparrowFlying} loop={true} />
+        💖 💕 💗 💞 💘
+      </motion.div>
+
+      {/* Sparrow */}
+      <motion.div
+        className="absolute top-10 right-6 md:right-20 z-10 flex flex-col items-center"
+        animate={{ y: [0, -15, 0], x: [0, 5, 0] }}
+        transition={{ repeat: Infinity, duration: 3 }}
+      >
+        <div className="w-24 h-24 md:w-40 md:h-40">
+          <Lottie animationData={sparrowFlying} loop />
+        </div>
+        <span className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs md:text-sm font-bold text-rose-500 shadow-sm -mt-4 border border-rose-100">
+          Bubu 🐦
+        </span>
       </motion.div>
 
       <div className="text-center z-10 w-full max-w-md flex flex-col items-center">
-        
-        {/* --- Elephant (You) --- */}
-        <div className="relative w-64 h-64 mb-6">
-          <AnimatePresence mode="wait">
-            {yesPressed ? (
-              <motion.div
-                key="happy"
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                className="w-full h-full"
-              >
-                <Lottie animationData={elephantHappy} loop={true} />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="idle"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="w-full h-full"
-              >
-                <Lottie animationData={elephantIdle} loop={true} />
-              </motion.div>
-            )}
-          </AnimatePresence>
+
+        {/* Elephant */}
+        <div className="relative mb-6 flex flex-col items-center">
+
+          <motion.span
+            className="absolute -top-8 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs md:text-sm font-bold text-sky-600 shadow-sm border border-sky-100"
+            animate={{ y: [0, -5, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+          >
+            Dudu 🐘
+          </motion.span>
+
+          <div className="w-64 h-64 md:w-80 md:h-80">
+            <AnimatePresence mode="wait">
+              {yesPressed ? (
+                <motion.div
+                  key="happy"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full h-full"
+                >
+                  <Lottie animationData={elephantHappy} loop />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="idle"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full h-full"
+                >
+                  <Lottie animationData={elephantIdle} loop />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* --- Text & Buttons --- */}
+        {/* Main Content */}
         {yesPressed ? (
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+          <motion.h1
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 250 }}
+            className="text-4xl md:text-6xl font-bold text-rose-600"
           >
-            <h1 className="text-4xl font-bold text-rose-600 font-sans tracking-tight">
-              Yay!! Love you {name}! ❤️
-            </h1>
-            <p className="mt-4 text-rose-800 text-lg">
-              (I knew you&apos;d say yes 😉)
-            </p>
-          </motion.div>
+            Yay!! Love you {name}! ❤️
+          </motion.h1>
         ) : (
           <>
-            <h1 className="text-3xl md:text-5xl font-bold text-rose-600 mb-8 font-sans leading-tight tracking-tight drop-shadow-sm">
+            <h1 className="text-3xl md:text-5xl font-bold text-rose-600 mb-8 leading-tight">
               Will you be my Valentine, {name}?
             </h1>
 
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full relative">
-              
-              {/* YES Button */}
-              <Button
-                className="bg-rose-600 hover:bg-rose-700 text-white font-bold transition-all duration-300 shadow-xl shadow-rose-200 rounded-full z-20"
-                style={{ fontSize: yesButtonSize, padding: `${noCount * 2 + 10}px ${noCount * 5 + 20}px` }}
-                onClick={handleYesClick}
-              >
-                Yes
-              </Button>
+          <div className="relative flex flex-col items-center justify-center gap-4 min-h-[180px]">
 
-              {/* NO Button (Tricky Logic) */}
-              <motion.div
-                className="relative inline-block"
-                animate={!isMobile ? { x: position.x, y: position.y } : {}}
-                transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                onMouseEnter={handleNoHover} // Desktop: Run away
+  {/* YES BUTTON */}
+  <motion.div
+    animate={{
+      scale: 1 + noCount * 0.15,
+      boxShadow:
+        noCount > 2
+          ? "0px 0px 40px rgba(225,29,72,0.6)"
+          : "0px 10px 20px rgba(0,0,0,0.1)"
+    }}
+    transition={{ type: "spring", stiffness: 200 }}
+    className="z-20"
+  >
+    <Button
+      className="bg-gradient-to-r from-rose-500 to-pink-500 
+      hover:from-rose-600 hover:to-pink-600 
+      text-white font-bold py-4 px-10 text-xl 
+      rounded-full"
+      onClick={handleYesClick}
+    >
+      Yes 💖
+    </Button>
+  </motion.div>
+
+  {/* NO BUTTON */}
+  <motion.div
+    className="relative z-10"
+    animate={!isMobile ? { x: position.x, y: position.y } : {}}
+    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+    onMouseEnter={handleNoHover}
+  >
+    <Button
+      variant="secondary"
+      className="bg-slate-200 hover:bg-slate-300 
+      text-slate-700 font-medium py-3 px-6 
+      rounded-full"
+      onClick={handleNoClick}
+    >
+      {phrases[Math.min(noCount, phrases.length - 1)]}
+    </Button>
+  </motion.div>
+
+</div>
+
+
+            {/* Emotional escalation text */}
+            {noCount > 3 && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-6 text-rose-500 font-medium"
               >
-                <Button
-                  variant="secondary"
-                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium transition-all duration-300 rounded-full min-w-[100px]"
-                  onClick={handleNoClick} // Mobile: Shrink/Change Text
-                  style={isMobile ? { transform: `scale(${Math.max(0.6, 1 - noCount * 0.1)})` } : {}}
-                >
-                  {phrases[Math.min(noCount, phrases.length - 1)]}
-                </Button>
-              </motion.div>
-            </div>
+                You keep pressing no… but destiny says yes 😌
+              </motion.p>
+            )}
           </>
         )}
       </div>
